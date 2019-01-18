@@ -4,6 +4,7 @@ Vue.js 笔记
 ## 目录
 
 - [目录](#目录)
+- [Vue基础](#Vue基础)
   - [一、Vue.js是什么](#一vuejs是什么)
   - [二、资源](#二资源)
   - [三、Vue实例](#三vue实例)
@@ -27,21 +28,37 @@ Vue.js 笔记
       - [2.3 自动添加前缀](#23-自动添加前缀)
     - [3. 多重值](#3-多重值)
   - [七、Vue中的条件渲染](#七vue中的条件渲染)
-     - [1. 指令](#1-指令)
-     - [2. 指令的比较](#2-指令的比较)
-     - [3. 用key管理可复用的元素](#3-用key管理可复用的元素)
+    - [1. 指令](#1-指令)
+    - [2. 指令的比较](#2-指令的比较)
+    - [3. 用key管理可复用的元素](#3-用key管理可复用的元素)
   - [八、Vue中的列表渲染](#八vue中的列表渲染)
-     - [1. 指令v-for](#1-指令v-for)
-     - [2. key](#2-key)
-     - [3. 数组更新检测](#3-数组更新检测)
-       - [3.1 变异方法](#31-变异方法)
-       - [3.2 替换数组](#32-替换数组)
-       - [3.3 注意事项](#33-注意事项)
-     - [4. 对象更改检测注意事项](#4-对象更改检测注意事项)
+    - [1. 指令v-for](#1-指令v-for)
+    - [2. key](#2-key)
+    - [3. 数组更新检测](#3-数组更新检测)
+      - [3.1 变异方法](#31-变异方法)
+      - [3.2 替换数组](#32-替换数组)
+      - [3.3 注意事项](#33-注意事项)
+    - [4. 对象更改检测注意事项](#4-对象更改检测注意事项)
+  - [九、事件处理](#九事件处理)
+    - [1. 监听事件](#1-监听事件)
+    - [2. 事件处理方法](#2-事件处理方法)
+    - [3. 内联处理器中的方法](#3-内联处理器中的方法)
+    - [4. 事件修饰符](#4-事件修饰符)
+    - [5. 按键修饰符](#5-按键修饰符)
+    - [6. 系统修饰键](#6-系统修饰键)
+    - [7. exact修饰符](#7-exact修饰符)
+    - [8. 鼠标修饰符](#8-鼠标修饰符) 
+  - [十、表单的输入绑定](#十表单的输入绑定)
+  - [十一、组件基础](#十一组件基础)
      
+     
+- [深入了解组件](#深入了解组件)
+
 <!-- /TOC -->
 
 <br>
+
+# Vue基础
 
 ## 一、Vue.js是什么
 - Vue (读音 /vjuː/，类似于 view) 是一套用于构建用户界面的**渐进式框架**。
@@ -257,15 +274,15 @@ new Vue({
 
 <br>
 
-# 八、Vue中的列表渲染
-## 1. 指令``v-for``
+## 八、Vue中的列表渲染
+### 1. 指令``v-for``
 - 我们用 ``v-for`` 指令根据一组数组的选项列表进行渲染。
 - ``v-for`` 指令需要使用 ``item in items`` 形式的特殊语法，``items`` 是源数据数组并且 ``item`` 是数组元素迭代的别名。
 - 在 ``v-for`` 块中，我们拥有对父作用域属性的完全访问权限。
 - ``v-for`` 还支持一个可选的第二个参数为当前项的 **索引**。
 - 可以用``of`` 替代 ``in`` 作为分隔符，它是最接近 JavaScript 迭代器的语法
 
-## 2. ``key``
+### 2. ``key``
 当 Vue.js 用 ``v-for`` 正在更新已渲染过的元素列表时，默认用 **就地复用** 策略。如果数据项的顺序被改变，Vue 将不会移动 DOM 元素来匹配数据项的顺序， 而是简单复用此处每个元素，并且确保它在特定索引下显示已被渲染过的每个元素
 
 这个默认的模式是高效的，但是只适用于不依赖子组件状态或临时 DOM 状态 (例如：表单输入值) 的列表渲染输出。
@@ -276,8 +293,8 @@ new Vue({
 
 因为它是 Vue 识别节点的一个通用机制，``key`` 并不与 ``v-for`` 特别关联，``key`` 还具有其他用途。
 
-## 3. 数组更新检测
-### 3.1 变异方法
+### 3. 数组更新检测
+#### 3.1 变异方法
 Vue 包含一组观察数组的变异方法，所以它们也将会触发视图更新。这些方法如下:
 - push() 
 - pop()
@@ -287,12 +304,12 @@ Vue 包含一组观察数组的变异方法，所以它们也将会触发视图�
 - sort()
 - reverse()
 
-### 3.2 替换数组
+#### 3.2 替换数组
 变异方法（mutation method），会改变这些方法调用的原始数组。
 
 非变异方法（non-mutating method）方法，例如：``filter()``，``concat()``和``slice()``。这些不会改变原始数组，但总是返回一个新数组。
 
-### 3.3 注意事项
+#### 3.3 注意事项
 由于 JavaScript 的限制，Vue 不能检测以下变动的数组：
 1. 当你利用索引直接设置一个项时，例如：``vm.items[indexOfItem] = newValue``
 2. 当你修改数组的长度时，例如：``vm.items.length = newLength``
@@ -302,7 +319,7 @@ Vue 包含一组观察数组的变异方法，所以它们也将会触发视图�
 > 2. 改变数组引用
 > 3. set 方法
 
-## 4. 对象更改检测注意事项
+### 4. 对象更改检测注意事项
 由于 JavaScript 的限制，**Vue不能检测对象属性的添加或删除**：
 - 对于已经创建的实例，Vue 不能动态添加根级别的响应式属性。
 - 可以使用 ``Vue.set(object, key, value)`` 方法向嵌套对象添加响应式属性。
@@ -328,11 +345,196 @@ vm.userProfile = Object.assign({}, vm.userProfile, {
 ```
 🍃 [v-for with a Component case](https://github.com/yeyongzhen/vue_learning/tree/master/demo/index9.html)
 
+<br>
+
+## 九、事件处理
+### 1. 监听事件
+-  指令 ``v-on`` 用来监听 DOM 事件
+```html
+<button v-on:click="count += 1">Add</button>
+```
+```js
+var vm = new Vue({
+    el: "#app",
+    data: {
+        count: 0
+    }
+})
+```
+
+### 2. 事件处理方法
+- 指令 ``v-on`` 可以接收一个需要调用的方法名称
+```html
+<button v-on:click="showMsg">Show</button>
+```
+```js
+var vm = new Vue({
+    el: "#app",
+    data: {
+        message: ''
+    },
+    methods: {
+        showMsg: function () {
+            this.message = 'Method Event Handlers'
+        }
+    }
+})
+```
+
+### 3. 内联处理器中的方法
+- 在内联 JavaScript 代码中调用方法
+```html
+<button v-on:click="say('Hello')">Say Hello</button>
+```
+```js
+var vm = new Vue({
+    el: "#app",
+    data: {
+        message: ''
+    },
+    methods: {
+        say: function (message) {
+            this.message = message
+        }
+    }
+})
+```
+- 在内联语句中监听 原始DOM 事件
+```html
+<button v-on:click="warn('access the original dom!', $event)">warn</button>
+```
+```js
+var vm = new Vue({
+    el: "#app",
+    data: {
+        message: ''
+    },
+    methods: {
+        warn: function (message, event) {
+            if (event) {
+                event.preventDefault()
+            }
+            alert(message);
+        }
+    }
+})
+```
+
+### 4. 事件修饰符
+- 方法只有纯粹的数据逻辑，而不是去处理 DOM 事件细节
+
+Vue 提供的事件修饰符：
+- ``.stop``
+- ``.prevent``
+- ``.capture``
+- ``.self``
+- ``.once``
+- ``.passive``
+
+```html
+<!-- 阻止单击事件继续传播 -->
+<a v-on:click.stop="doThis"></a>
+
+<!-- 提交事件不再重载页面 -->
+<form v-on:submit.prevent="onSubmit"></form>
+
+<!-- 修饰符可以串联 -->
+<a v-on:click.stop.prevent="doThat"></a>
+
+<!-- 只有修饰符 -->
+<form v-on:submit.prevent></form>
+
+<!-- 添加事件监听器时使用事件捕获模式 -->
+<!-- 即元素自身触发的事件先在此处理，然后才交由内部元素进行处理 -->
+<div v-on:click.capture="doThis">...</div>
+
+<!-- 只当在 event.target 是当前元素自身时触发处理函数 -->
+<!-- 即事件不是从内部元素触发的 -->
+<div v-on:click.self="doThat">...</div>
+```
+> 使用修饰符时，顺序很重要；相应的代码会以同样的顺序产生。因此，用 
+>
+> ``v-on:click.prevent.self`` 会阻止所有的点击，而 
+>
+> ``v-on:click.self.prevent`` 只会阻止对元素自身的点击。
+
+### 5. 按键修饰符
+- Vue 允许为 ``v-on`` 在监听键盘事件时添加按键修饰符
+```html
+<!-- 只有在 `keyCode` 是 13 时调用 `vm.submit()` -->
+<input v-on:keyup.13="submit">
+```
+Vue 为最常用的按键提供了别名：
+- ``.enter``
+- ``.tab``
+- ``.delete``(捕获“删除”和“退格”键)
+- ``.esc``
+- ``.space``
+- ``.up``
+- ``.down``
+- ``.left``
+- ``.right``
+
+```html
+<!-- 同上 -->
+<input v-on:keyup.enter="submit">
+
+<!-- 缩写语法 -->
+<input @keyup.enter="submit">
+```
+- 通过全局 ``config.keyCodes`` 对象自定义按键修饰符别名
+```js
+// 可以使用 `v-on:keyup.f1`
+Vue.config.keyCodes.f1 = 112
+```
+
+### 6. 系统修饰键
+用如下修饰符来实现仅在按下相应按键时才触发鼠标或键盘事件的监听器:
+- ``.ctrl``
+- ``.alt``
+- ``.shift``
+- ``.meta``
+
+```html
+<!-- Alt + C -->
+<input @keyup.alt.67="clear">
+
+<!-- Ctrl + Click -->
+<div @click.ctrl="doSomething">Do something</div>
+```
+
+### 7. ``.exact``修饰符
+``.exact`` 修饰符允许你控制由精确的系统修饰符组合触发的事件。
+```html
+<!-- 即使 Alt 或 Shift 被一同按下时也会触发 -->
+<button @click.ctrl="onClick">A</button>
+
+<!-- 有且只有 Ctrl 被按下的时候才触发 -->
+<button @click.ctrl.exact="onCtrlClick">A</button>
+
+<!-- 没有任何系统修饰符被按下的时候才触发 -->
+<button @click.exact="onClick">A</button>
+```
+
+### 8. 鼠标修饰符
+- ``left``
+- ``right``
+- ``middle``
+这些修饰符会限制处理函数仅响应特定的鼠标按钮
 
 
+<br>
+
+## 十、表单的输入绑定
 
 
+<br>
 
+## 十一、组件基础
+
+
+# 深入了解组件
+waiting to record...
 
 
 
