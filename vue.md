@@ -271,4 +271,27 @@ new Vue({
 
 因为它是 Vue 识别节点的一个通用机制，``key`` 并不与 ``v-for`` 特别关联，``key`` 还具有其他用途。
 
+## 3. 数组更新检测
+
+### 3.1 变异方法
+Vue 包含一组观察数组的变异方法，所以它们也将会触发视图更新。这些方法如下:
+- push() 
+- pop()
+- shift()
+- unshift()
+- splice()
+- sort()
+- reverse()
+
+### 3.2 替换数组
+变异方法（mutation method），会改变这些方法调用的原始数组。
+
+非变异方法（non-mutating method）方法，例如：``filter()``，``concat()``和``slice()``。这些不会改变原始数组，但总是返回一个新数组。
+
+## 4. 注意事项
+由于 JavaScript 的限制，Vue 不能检测一下变动的数组：
+1. 当你利用索引直接设置一个项时，例如：``vm.items[indexOfItem] = newValue``
+2. 当你修改数组的长度时，例如：``vm.items.length = newLength``
+
+
 🚀 [回到顶部](#目录)
