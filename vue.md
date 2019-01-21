@@ -49,11 +49,12 @@ Vue.js 笔记
     - [7. exact修饰符](#7-exact修饰符)
     - [8. 鼠标修饰符](#8-鼠标修饰符) 
   - [十、表单的输入绑定](#十表单的输入绑定)
-  - [十一、组件基础](#十一组件基础)
-     
-     
-- [深入了解组件](#深入了解组件)
-
+    - [1. 基础用法](#1-基础用法)
+    - [2. 值绑定](#2-值绑定)
+    - [3. 修饰符](#3-修饰符)
+- [组件](#组件)
+  - [一、组件基础](#一组件基础)
+  
 <!-- /TOC -->
 
 <br>
@@ -526,15 +527,47 @@ Vue.config.keyCodes.f1 = 112
 <br>
 
 ## 十、表单的输入绑定
+### 1. 基础用法
+- 我们可以用 ``v-model`` 指令在表单 ``input``、``textarea`` 及 ``select`` 元素上创建双向数据绑定
+- ``v-model`` 本质上不过是语法糖，负责监听用户的输入事件以更新数据
+- ``v-model`` 始终将Vue实例的数据作为数据来源，所以初始值应该通过在 ``data`` 选项中声明
 
+### 2. 值绑定
+对于单选按钮，复选框及选择框的选项，v-model 绑定的值通常是静态字符串 (对于复选框也可以是布尔值)。
+```html
+<!-- 当选中时，`picked` 为字符串 "a" -->
+<input type="radio" v-model="picked" value="a">
+
+<!-- `toggle` 为 true 或 false -->
+<input type="checkbox" v-model="toggle">
+
+<!-- 当选中第一个选项时，`selected` 为字符串 "abc" -->
+<select v-model="selected">
+  <option value="abc">ABC</option>
+</select>
+```
+但是有时我们可能想把值绑定到 Vue 实例的一个动态属性上，这时可以用 ``v-bind`` 实现，并且这个属性的值可以不是字符串。
+
+### 3. 修饰符
+- ``.lazy``
+- ``.number``
+- ``.trim``
+
+```html
+<!-- 在“change”时而非“input”时更新 -->
+<input v-model.lazy="msg" >
+
+<!-- 自动将用户输入的值转为数值类型 -->
+<input v-model.number="age" type="number">
+
+<!-- 自动过滤用户输入的首尾空白字符 -->
+<input v-model.trim="msg">
+```
 
 <br>
 
-## 十一、组件基础
-
-
-# 深入了解组件
-waiting to record...
+# 组件
+## 一、组件基础
 
 
 
