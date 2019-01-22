@@ -568,6 +568,114 @@ Vue.config.keyCodes.f1 = 112
 
 # 组件
 ## 一、组件基础
+### 1. 基本示例
+```vue
+// 定义一个名为 button-counter 的新组件
+Vue.component('button-counter', {
+  data: function() {
+    return {
+      count: 0
+    }
+  },
+  template: '<button v-on:click="count++">You clicked me {{ count }} times.</button>'
+})
+```
+组件是可复用的 Vue 实例，且带有一个名字:该例中组件名是 ``<button-counter>``。可以在一个 Vue 根实例中，将该组件作为自定义元素来使用：
+```html
+<div id="app">
+  <button-counter></button-counter>
+</div>
+```
+```vue
+new Vue({
+  el: "#app"
+})
+```
+### 2. 组件的复用
+- 可以将组件进行任意次数的复用
+- 每用一次组件，就会有一个 **新实例** 被创建
+- 一个组件的 ``data`` 必须是一个函数，因此每个实例可以维护一份被返回对象的独立拷贝
+
+### 3. 组件的组织
+- 通常一个应用会以一棵嵌套的组件树的形式来组织
+- 有两种组件的注册类型：**全局注册**和**局部注册**
+- 全局注册的组件可以用在其被注册之后的任何新创建的 Vue 根实例，包括其组件树中的所有子组件的模板中
+
+### 4. 通过Prop向子组件传递数据
+- Prop 是你可以在组件上注册一些自定义特性
+- 当一个值传递给一个 prop 特性的时候，就变成了那个组件实例的一个属性
+- 一个组件默认可以拥有任意数量的 prop，任何值都可以传递给prop
+- 我们可以使用 ``v-bind`` 来动态传递prop
+
+```html
+<blog-post title="My journey with Vue"></blog-post>
+<blog-post title="Blogging with Vue"></blog-post>
+```
+```vue
+Vue.component('blog-post', {
+  props: ['title'],
+  template: '<h3>{{ title }}</h3>'
+})
+```
+
+### 5. 单个根元素
+- 每个根组件必须只有一个根元素
+
+```html
+<blog-post
+    v-for="post in posts"
+    :key="post.id"
+    :post="post"
+></blog-post>
+```
+```vue
+Vue.component('blog-post', {
+    props: ['post'],
+    template: '
+        <div class="blog-post"
+            <h3>{{ post.title }}</h3>
+            <div v-html="post.content"></div>
+        </div>
+    '
+})
+```
+
+### 6. 通过事件向父级组件发送消息
+- Vue 实例提供了一个自定义事件的系统
+- 可以调用内建的 ``$emit`` 方法，并传入事件的名字，来向父级组件触发一个事件
+- 我们通过 ``v-on`` 在父级组件上监听这个事件，就像监听一个原生 DOM 事件一样
+
+#### 6.1 使用事件抛出一个值
+- 可以使用 ``$emit`` 的第二个参数作为一个事件抛出的特定值
+- 当在父级组件监听该事件时，通过 ``$event`` 访问被抛出的值
+- 如果该事件处理函数是一个方法，那么这个被抛出的值将作为第一个参数传入该方法
+
+```html
+<!-- 父级组件 -->
+<blog-post
+  ...
+  v-on:enlarge-text="postFontSize += $event"
+></blog-post>
+
+<!-- 子组件中的 button -->
+<button v-on:click="$emit('enlarge-text', 0.1)">
+  Enlarge text
+</button>
+```
+```vue
+<!-- 如果父级组件处理函数是一个方法 -->
+methods: {
+  onEnlargeText: function (enlargeAmount) {
+    this.postFontSize += enlargeAmount
+  }
+}
+```
+
+
+
+
+
+
 
 
 
