@@ -54,7 +54,13 @@ Vue.js 笔记
     - [3. 修饰符](#3-修饰符)
 - [组件](#组件)
   - [一、组件基础](#一组件基础)
-  
+    - [1. 基本示例](#1-基本示例)
+    - [2. 组件的复用](#2-组件的复用)
+    - [3. 组件的组织](#3-组件的组织)
+    - [4. 通过Prop向子组件传递数据](#4-通过Prop向子组件传递数据)
+    - [5. 单个根元素](#5-单个根元素)
+    - [6. 通过事件向父级组件发送消息](#6-通过事件向父级组件发送消息)
+        - [6.1 使用事件抛出一个值](#61-使用事件抛出一个值)
 <!-- /TOC -->
 
 <br>
@@ -670,11 +676,77 @@ methods: {
   }
 }
 ```
+### 7. 通过插槽分发内容
+与HTML元素一样，我们经常需要向一个组件传递内容：
+```html
+<alert-box>
+    Something bad happend.
+</alert-box>
+```
+Vue 自定义的 ``<slot>`` 元素让这变得非常简单:
+```vue
+Vue.component('alert-box', {
+  template: `
+    <div class="demo-alert-box">
+      <strong>Error!</strong>
+      <slot></slot>
+    </div>
+  `
+})
+```
+### 8. 动态组件
+有的时候，在不同组件之间进行动态切换是非常有用的，我们可以通过 Vue 的 ``<component>``元素加一个特殊的 ``is`` 特性来实现:
+```html
+<!-- 组件会在 `currentTabComponent` 改变时改变 -->
+<component v-bind:is="currentTabComponent"></component>
+```
+在上述示例中，``currentTabComponent`` 可以包括
+
+- 已注册组件的名字，或
+- 一个组件的选项对象
 
 
+### 9. 解析DOM模板时的注意事项
+```html
+<table>
+  <blog-post-row></blog-post-row>
+</table>
+```
+该自定义组件 ``<blog-post-row>`` 会被作为无效的内容提升到外部，并导致最终渲染结果出错。正确写法如下：
+```html
+<table>
+  <tr v-bind:is="blog-post-row"></tr>
+</table>
+```
+注意：**如果是从以下来源使用模板的话，这条限制是不存在的：
+- 字符串（例如：``template:'...'``）
+- 单文件组件（``.vue``）
+- ``<script type="text/x-template">``
+
+<br>
+
+## 二、深入了解组件
+### 1. 组件注册
+#### 1.1 组件名
+
+#### 1.2 全局注册
+
+#### 1.3 局部注册
+
+#### 1.4 模块系统
 
 
+### 2. Prop
 
+### 3. 自定义事件
+
+### 4. 插槽slot
+
+### 5. 动态组件
+
+### 6. 异步组件
+
+### 7. 处理边界情况
 
 
 
