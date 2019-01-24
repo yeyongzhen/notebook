@@ -728,15 +728,198 @@ Vue.component('alert-box', {
 ## 二、深入了解组件
 ### 1. 组件注册
 #### 1.1 组件名
+定义组件名有两种方式：
+- **使用 kebab-case**，引用时使用 ``<my-component-name>``
+- **使用 PascalCase**，引用时使用 ``<my-component-name>`` 或者 ``<MyComponentName>``
+
+注意：直接在 DOM（即非字符串的模板） 中使用时，只有 **kebab-case** 是有效的
+```vue
+// kebab-case
+Vue.component('my-component-name', {})
+
+// PascalCase
+Vue.component('MyComponentName', {})
+```
 
 #### 1.2 全局注册
+- 通过 ``Vue.component`` 来创建组件
+- 注册后可以在任何新创建的 Vue 根实例（``new Vue``）的模板中
+- 在所有子组件中，也可以相互使用
 
 #### 1.3 局部注册
+- 通过一个普通的 JavaScript 对象来定义组件
+- 通过 ``components`` 选项对象使用
+- 局部注册的组件在其子组件中 **不可用**
 
+```vue
+var ComponentA = { /* ... */ }
+var ComponentB = { /* ... */ }
+var ComponentC = { /* ... */ }
+
+new Vue({
+  el: '#app',
+  components: {
+    'component-a': ComponentA,
+    'component-b': ComponentB
+  }
+})
+```
 #### 1.4 模块系统
-
+...
 
 ### 2. Prop
+#### 2.1 Prop的大小写（camelCase VS kebab-case）
+- HTML 中的特性名是大小写不敏感的，所以浏览器会把所有大写字符解释为小写字符。
+- 当你使用 DOM 中的模板时，camelCase的prop名需要使用其等价的 kebab-case 命名
+- 如果使用字符串模板，这个限制就不存在
+```vue
+Vue.component('blog-post', {
+    props: ['postTitle'],
+    template: '<h3>{{ postTitle }}</h3>'
+})
+```
+```html
+<!-- 在 HTML 中是 kebab-case 的 -->
+<blog-post post-title="hello!"></blog-post>
+```
+#### 2.2 Prop类型
+- 若希望每个 prop 都有指定的类型，可以以对象形式列出 prop
+- 该行为不仅为组件提供了文档，还会在遇到错误的类型时从浏览器的控制台提示用户
+
+```vue
+props: {
+    title: String,
+    likes: Number,
+    isPublished: Boolean,
+    commentIds: Array,
+    author: Object
+}
+```
+
+#### 2.3 传递静态或动态Prop
+可以给 prop 传入一个静态的值：如下
+```html
+<blog-post title="My journey with Vue"></blog-post>
+```
+也可以通过 ``v-bind`` 动态赋值，如下
+```html
+<!-- 动态赋予一个变量的值 -->
+<blog-post v-bind:title="post.title"></blog-post>
+
+<!-- 动态赋予一个复杂表达式的值 -->
+<blog-post v-bind:title="post.title + ' by ' + post.author.name"></blog-post>
+```
+除了字符串类型，任何类型的值都可以传递给一个prop
+- 传入一个数字
+- 传入一个布尔值
+- 传入一个数组
+- 传入一个对象
+- 传入一个对象的所有属性
+
+#### 2.4 单向数据流
+所有的 prop 都使得其父子 prop 之间形成了一个**单向下行绑定**：父级 prop 的更新会向下流动到子组件中，但是反过来不行。
+
+每次父级组件发生更新时，子组件中所有的 prop 都将会刷新为最新的值。
+
+有两种常见的试图改变一个 prop 的情形：
+1. **该 prop 用来传递一个初始值；这个子组件接下来希望将其作为一个本地的 prop 数据来使用。**这种情况下最好定义一个本地的 data 属性并将这个 prop 用作其初始值
+```vue
+props: ['initialCounter'],
+data: function () {
+  return {
+    counter: this.initialCounter
+  }
+}
+```
+2. **这个 prop 以一种原始的值传入且需要进行转换。**在这种情况下，最好使用这个 prop 的值来定义一个计算属性
+```vue
+props: ['size'],
+computed: {
+  normalizedSize: function () {
+    return this.size.trim().toLowerCase()
+  }
+}
+```
+> 注意在 JavaScript 中对象和数组是通过引用传入的，所以对于一个数组或对象类型的 prop 来说，在子组件中改变这个对象或数组本身将会影响到父组件的状态
+
+#### 2.5 Prop验证
+可以为组件的 prop 指定验证要求。若有一个需求未被满足，则 Vue 会在浏览器控制台中警告你。
+
+为了定制 prop 的验证方式，你可以为 ``props`` 中的值提供一个带有验证需求的对象，而不是一个字符串数组。
+
+```vue
+Vue.component('my-component', {
+  props: {
+    // 基础的类型检查 (`null` 匹配任何类型)
+    propA: Number,
+    // 多个可能的类型
+    propB: [String, Number],
+    // 必填的字符串
+    propC: {
+      type: String,
+      required: true
+    },
+    // 带有默认值的数字
+    propD: {
+      type: Number,
+      default: 100
+    },
+    // 带有默认值的对象
+    propE: {
+      type: Object,
+      // 对象或数组默认值必须从一个工厂函数获取
+      default: function () {
+        return { message: 'hello' }
+      }
+    },
+    // 自定义验证函数
+    propF: {
+      validator: function (value) {
+        // 这个值必须匹配下列字符串中的一个
+        return ['success', 'warning', 'danger'].indexOf(value) !== -1
+      }
+    }
+  }
+})
+```
+##### 2.5.1 类型检查
+``type`` 可以是以下原生构造函数中的一个：
+- ``String``
+- ``Number``
+- ``Boolean``
+- ``Array``
+- ``Object``
+- ``Date``
+- ``Function``
+- ``Symbol``
+
+``type`` 还可以是一个自定义的构造函数，并通过 ``instanceof`` 来进行检查
+```js
+function Person (firstName, lastName) {
+  this.firstName = firstName
+  this.lastName = lastName
+}
+```
+```vue
+Vue.component('blog-post', {
+  props: {
+    author: Person
+  }
+})
+```
+上述代码验证 ``author`` prop 的值是否是通过 ``new Person`` 创建的。
+
+#### 2.6 非Prop的特性
+一个非 prop 特性是指传向一个组件，但是该组件并没有相应 prop 定义的特性。
+
+因为显式定义的 prop 适用于向一个子组件传入信息，然而组件库的作者并不总能预见组件会被用于怎样的场景。这也是为什么组件可以接受任意的特性，而这些特性会被添加到这个组件的根元素上。
+
+例如，想象一下你通过一个 Bootstrap 插件使用了一个第三方的 ``<bootstrap-date-input>`` 组件，这个插件需要在其 ``<input>`` 上用到一个 ``data-date-picker`` 特性。我们可以将这个特性添加到你的组件实例上：
+
+```vue
+<bootstrap-date-input data-date-picker="activated"></bootstrap-date-input>
+```
+然后这个 ``data-date-picker="activated"`` 特性就会自动添加到 ``<bootstrap-date-input>`` 的根元素上。
 
 ### 3. 自定义事件
 
