@@ -61,6 +61,30 @@ Vue.js 笔记
     - [5. 单个根元素](#5-单个根元素)
     - [6. 通过事件向父级组件发送消息](#6-通过事件向父级组件发送消息)
         - [6.1 使用事件抛出一个值](#61-使用事件抛出一个值)
+    - [7. 通过插槽分发内容](#7-通过插槽分发内容)
+    - [8. 动态组件](#8-动态组件)
+    - [9. 解析DOM模板时的注意事项](#9-解析DOM模板时的注意事项)
+  - [二、深入了解组件](#二深入了解组件)
+    - [1. 组件注册](#1-组件注册)
+      - [1.1 组件名](#11-组件名)
+      - [1.2 全局注册](#12-全局注册)
+      - [1.3 局部注册](#13-局部注册)
+      - [1.4 模块系统](#14-模块系统)
+    - [2. Prop](#2-组件的复用)
+      - [2.1 Prop的大小写](#21-Prop的大小写)
+      - [2.2 Prop类型](#22-Prop类型)
+      - [2.3 传递静态或动态Prop](#23-传递静态或动态Prop)
+      - [2.4 单向数据流](#24-单向数据流)
+      - [2.5 Prop验证](#25-Prop验证)
+        - [2.5.1 类型检查](#251-类型检查)
+      - [2.6 非Prop的特性](#26-非Prop的特性)
+        - [2.6.1 替换/合并已有的特性](#261-替换/合并已有的特性)
+        - [2.6.2 禁用特性继承](#262-禁用特性继承)
+    - [3. 自定义事件](#3-自定义事件)
+    - [4. 插槽slot](#4-插槽slot)
+    - [5. 动态组件](#5-单个根元素)
+    - [6. 异步组件](#6-通过事件向父级组件发送消息)
+    - [7. 处理边界情况](#7-处理边界情况)
 <!-- /TOC -->
 
 <br>
@@ -768,7 +792,7 @@ new Vue({
 ...
 
 ### 2. Prop
-#### 2.1 Prop的大小写（camelCase VS kebab-case）
+#### 2.1 Prop的大小写
 - HTML 中的特性名是大小写不敏感的，所以浏览器会把所有大写字符解释为小写字符。
 - 当你使用 DOM 中的模板时，camelCase的prop名需要使用其等价的 kebab-case 命名
 - 如果使用字符串模板，这个限制就不存在
@@ -920,6 +944,63 @@ Vue.component('blog-post', {
 <bootstrap-date-input data-date-picker="activated"></bootstrap-date-input>
 ```
 然后这个 ``data-date-picker="activated"`` 特性就会自动添加到 ``<bootstrap-date-input>`` 的根元素上。
+
+##### 2.6.1 替换/合并已有的特性
+若``<bootstrap-date-input>`` 的模板是这样的：
+```html
+<input type="date" class="form-control">
+```
+为了定制主题，需要添加一个特别的类名：
+```html
+<bootstrap-date-input
+    data-date-picker="activated"
+    class="date-picker-theme-dark"
+></bootstrap-date-input>
+```
+此时，定义了两个不同的 ``class`` 的值：
+- ``form-control``，这是在组件的模板内设置好的
+- ``date-picker-theme-dark``，这是从父级组件传入的
+- 对于大部分特性来说，从外部提供给组件的值会替换掉组件内部设置好的值。例如：传入 ``type="text"`` 会替换掉 ``type="date"``。而 ``class`` 和 ``style`` 特性不同，两边的值会被合并起来，最终的值为：``form-control date-picker-theme-dark``。
+
+##### 2.6.2 禁用特性继承
+若不希望组件的根元素集成特性，可以在组件选项中设置 ``inheritAttrs: false``。例如：
+```vue
+Vue.component('my-component', {
+  inheritAttrs: false,
+  // ...
+})
+```
+配合实例的 ``$attrs`` 属性使用，该属性包含了传递给一个组件的特性名和特性值：
+```js
+{
+  class: 'username-input',
+  placeholder: 'Enter your username'
+}
+```
+```vue
+Vue.component('base-input', {
+  inheritAttrs: false,
+  props: ['label', 'value'],
+  template: `
+    <label>
+      {{ label }}
+      <input
+        v-bind="$attrs"
+        v-bind:value="value"
+        v-on:input="$emit('input', $event.target.value)"
+      >
+    </label>
+  `
+})
+```
+这个模式允许你在使用基础组件的时候更像是使用原始的 HTML 元素，而不会担心哪个元素是真正的根元素：
+```html
+<base-input
+  v-model="username"
+  class="username-input"
+  placeholder="Enter your username"
+></base-input>
+```
 
 ### 3. 自定义事件
 
