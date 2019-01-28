@@ -1025,6 +1025,94 @@ this.$emit('myEvent')
 ``v-on`` 时间监听器在 DOM 模板中会被自动转换为全小写（因为 HTML是大小写不敏感的），所以``v-on:myEvent`` 将会变成 ``v-on:myevent``--导致 ``myEvent`` 不可能被监听到。
 
 #### 3.2 自定义组件的 ``v-model``
+一个组件上的 ``v-model`` 默认会利用名为 ``value`` 的 prop 和名为 ``input`` 的事件，但像单选框、复选框的类型的输入控件可能会将 ``value`` 特性用于不同的目的。``model`` 选项可以用来避免这样的冲突：
+```js
+Vue.component('base-checkbox', {
+  model: {
+    prop: 'checked',
+    event: 'change'
+  },
+  props: {
+    checked: Boolean
+  },
+  template: `
+    <input
+      type="checkbox"
+      v-bind:checked="checked"
+      v-on:change="$emit('change', $event.target.checked)"
+    >
+  `
+})
+```
+```html
+<base-checkbox v-model="lovingVue"></base-checkbox>
+```
+在组件上使用 ``v-model`` 时，``lovingVue`` 会传入名为 ``checked`` 的prop。
+
+#### 3.3 将原生事件绑定到组件
+使用 ``v-on`` 的 ``.native`` 修饰符，可以在一个**组件的根元素**上直接监听一个原生事件。
+```html
+<base-input v-on:focus.native="onFocus"></base-input>
+```
+但是，当尝试监听一个类似 ``<input>`` 的非常特定的元素时，这并不是好主意。例如：
+```html
+<!-- 组件的根元素实际上是 <label> 元素 -->
+<label>
+  {{ label }}
+  <input
+    v-bind="$attrs"
+    v-bind:value="value"
+    v-on:input="$emit('input', $event.target.value)"
+  >
+</label>
+```
+此时，父级的 ``.native`` 监听器将静默失败，它不会产生任何报错，``onFocus`` 处理函数也不会被调用。
+
+Vue 提供了一个 ``$listeners`` 属性，它是一个对象，里面包含作用在这个组件上的所有监听器，例如：
+```js
+{
+  focus: function (event) { /* ... */ }
+  input: function (value) { /* ... */ },
+}
+```
+配合 ``v-on="$listeners"`` 将所有事件监听器指向这个组件的某个特定的子元素。
+```js
+Vue.component('base-input', {
+  inheritAttrs: false,
+  props: ['label', 'value'],
+  computed: {
+    inputListeners: function () {
+      var vm = this
+      // `Object.assign` 将所有的对象合并为一个新对象
+      return Object.assign({},
+        // 我们从父级添加所有的监听器
+        this.$listeners,
+        // 然后我们添加自定义监听器，
+        // 或覆写一些监听器的行为
+        {
+          // 这里确保组件配合 `v-model` 的工作
+          input: function (event) {
+            vm.$emit('input', event.target.value)
+          }
+        }
+      )
+    }
+  },
+  template: `
+    <label>
+      {{ label }}
+      <input
+        v-bind="$attrs"
+        v-bind:value="value"
+        v-on="inputListeners"
+      >
+    </label>
+  `
+})
+```
+#### 3.4 ``.sync``修饰符
+
+
 
 
 ### 4. 插槽slot
