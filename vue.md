@@ -1111,9 +1111,66 @@ Vue.component('base-input', {
 })
 ```
 #### 3.4 ``.sync``修饰符
+推荐以 ``update:myPropName`` 的模式触发事件，例如：在一个包含 ``title`` prop 的组件中，可以使用如下方法为其赋新值。
+```js
+this.$emit('update:title', newTitle)
+```
+父组件可以监听该事件，并根据需要更新一个本地的数据属性。
+```html
+<text-document
+    v-bind:title="doc.title"
+    v-on:update:title="doc.title = $event"
+></text-document>
+```
+该模式有一个缩写，即 ``.sync`` 修饰符：
+```html
+<text-document v-bind:title.sync="doc.title"></text-document>
+```
+> 注意：带有 ``.sync`` 修饰符的 ``v-bind`` 不能与表达式一起使用。取而代之的是，只能提供你想要绑定的属性名，类似 ``v-model``。
 
+当我们用一个对象同时设置多个prop 的时候，也可以将 ``.sync`` 修饰符和 ``v-bind`` 配合使用：
+```html
+<text-document v-bind.sync="doc"></text-document>
+```
+这样会把 ``doc`` 对象中的每一个属性 (如 ``title``) 都作为一个独立的 prop 传进去，然后各自添加用于更新的 ``v-on`` 监听器。
 
+举个例子：
+```html
+<div id="app">
+    <text-document
+	    v-model="doc.title"
+		v-bind:title="doc.title"
+		v-on:update:title="doc.title = $event"
+	></text-document>
+	<p>{{ doc.title }}</p>
+</div>
+```
+```js
+Vue.component('text-document', {
+	props: [ 'title' ],
+	template: `
+		<input
+			v-bind:value="title"
+			placeholder="Edit doc title"
+			v-on:input="modifyTitle()"
+		>
+	`,
+	methods: {
+		modifyTitle: function ($event) {
+			this.$emit('update:title', $event.target.value);
+		}
+	}
+})
 
+var vm = new Vue({
+	el: "#app",
+	data: {
+		doc: {
+			title: 'Musle'
+		}
+	}
+})
+```
 
 ### 4. 插槽slot
 
