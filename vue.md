@@ -1115,7 +1115,7 @@ Vue.component('base-input', {
 ```js
 this.$emit('update:title', newTitle)
 ```
-父组件可以监听该事件，并根据需要更新一个本地的数据属性。
+**父组件可以监听该事件，并根据需要更新一个本地的数据属性。**
 ```html
 <text-document
     v-bind:title="doc.title"
@@ -1173,6 +1173,198 @@ var vm = new Vue({
 ```
 
 ### 4. 插槽slot
+#### 4.1 插槽内容
+Vue 实现了一套内容分发的 API，这套 API 基于当前的 Web Components 规范草案，将 ``<slot>`` 元素作为承载分发内容的出口。
+
+例子
+```html
+<navigation-link url="/profile">
+  Your Profile
+</navigation-link>
+```
+```
+// 组件模板中 template
+<a v-bind:href="url" class="nav-link">
+  <slot></slot>
+</a>
+```
+当组件渲染的时候，该 ``<slot>`` 元素将会被替换为"Your Profile"，**插槽内可包含任何模板代码，包括 HTML**:
+```html
+<navigation-link url="/profile">
+  <!-- 添加一个 Font Awesome 图标 -->
+  <span class="fa fa-user"></span>
+  Your Profile
+</navigation-link>
+```
+也可以包含**其他组件**
+```html
+<navigation-link url="/profile">
+  <!-- 添加一个图标的组件 -->
+  <font-awesome-icon name="user"></font-awesome-icon>
+  Your Profile
+</navigation-link>
+```
+如果 ``<navigation-link>`` 组件中没有包含一个 ``<slot>``元素，则传入它的内容都将会被抛弃。
+
+#### 4.2 具名插槽
+有时需要多个插槽，例如，假设 ``<base-layout>`` 组件模板如下：
+```js
+template: `
+    <div class="container">
+      <header>
+        <!-- 我们希望把页头放这里 -->
+      </header>
+      <main>
+        <!-- 我们希望把主要内容放这里 -->
+      </main>
+      <footer>
+        <!-- 我们希望把页脚放这里 -->
+      </footer>
+    </div>
+`
+``` 
+此时，``<slot>`` 元素有一个特殊的特性：``name``，可以用来定义额外的插槽，如下
+```js
+template: `
+    <div class="container">
+      <header>
+        <slot name="header"></slot>
+      </header>
+      <main>
+        <slot></slot>
+      </main>
+      <footer>
+        <slot name="footer"></slot>
+      </footer>
+    </div>
+`
+```
+在向具名插槽提供内容的时候，我们可以在一个父组件的 ```<template>``` 元素上使用 ``slot`` 特性：
+```html
+<base-layout>
+  <template slot="header">
+    <h1>Here might be a page title</h1>
+  </template>
+
+  <p>A paragraph for the main content.</p>
+  <p>And another one.</p>
+
+  <template slot="footer">
+    <p>Here's some contact info</p>
+  </template>
+</base-layout>
+```
+另一种 ``slot`` 特性的用法是直接用在一个普通的元素上：
+```html
+<base-layout>
+  <h1 slot="header">Here might be a page title</h1>
+
+  <p>A paragraph for the main content.</p>
+  <p>And another one.</p>
+
+  <p slot="footer">Here's some contact info</p>
+</base-layout>
+```
+我们还是可以保留一个未命名插槽，这个插槽是**默认插槽**，也就是说它会作为所有未匹配到插槽的内容的统一出口。上述两个示例渲染出来的 HTML 都将会是：
+```html
+<div class="container">
+  <header>
+    <h1>Here might be a page title</h1>
+  </header>
+  <main>
+    <p>A paragraph for the main content.</p>
+    <p>And another one.</p>
+  </main>
+  <footer>
+    <p>Here's some contact info</p>
+  </footer>
+</div>
+```
+
+
+#### 4.3 插槽的默认内容
+若一个 ``<submit-button>`` 组件可能希望这个按钮的默认内容是"Submit"，但同时允许用户复写为"Save"、"update"或别的内容。
+```
+Vue.component('submit-button', {
+    props: [],
+    template: `
+        <button type="submit">
+            <slot>Submit</slot>
+        </button>
+    `
+})
+```
+
+#### 4.4 编译作用域
+当你想在插槽内使用数据时，例如：
+```html
+<navigation-link url="/profile">
+  Logged in as {{ user.name }}
+</navigation-link>
+```
+该插槽可以访问跟这个模板的其它地方相同的实例属性 (也就是说“作用域”是相同的)。
+但这个插槽不能访问 ```<navigation-link>``` 的作用域。例如尝试访问 ``url`` 是不会工作的。
+
+牢记一条准则：
+- **父组件模板的所有东西都会在父级作用域内编译；子组件模板的所有东西都会在子级作用域内编译。**
+
+#### 4.5 作用域插槽
+- 可以通过 ``slot-scope`` 特性从子组件获取数据
+- 如果一个 JavaScript 表达式在一个函数定义的参数位置有效，那么这个表达式实际上就可以被 ``lot-scope`` 接受
+- 也就是说你可以在支持的环境下 (单文件组件或现代浏览器)，在这些表达式中使用 ES2015 解构语法
+
+例子：
+```html
+<div id="app">
+    <todo-list v-bind:todos="todos"></todo-list>
+    
+	<todo-list v-bind:todos="todos">
+		<!-- 将 `slotProps` 定义为插槽作用域的名字 -->
+  		<template slot-scope="slotProps">
+    		<!-- 为待办项自定义一个模板，-->
+    		<!-- 通过 `slotProps` 定制每个待办项。-->
+    		<span v-if="slotProps.todo.isComplete">✓</span>
+			{{ slotProps.todo.text }}
+	    </template>
+	</todo-list>	
+
+	<todo-list v-bind:todos="todos">
+        <template slot-scope="{ todo }">
+    	    <span v-if="todo.isComplete">✓</span>
+    		{{ todo.text }}
+    	</template>
+    </todo-list>
+</div>
+```
+```js
+<script>
+	Vue.component('todo-list', {
+		props: ['todos'],
+		template: `
+			<ul>
+				<li
+				    v-for="todo in todos"
+				    v-bind:key="todo.id"
+				>
+				  	<slot v-bind:todo="todo">
+				        {{ todo.text }}
+				    </slot>
+			    </li>
+			</ul>
+		`
+	})
+	var vm = new Vue({
+		el: "#app",
+		data: {
+			todos: [
+				{id: 1, text: 'Learn VueJS', isComplete: true},
+				{id: 2, text: 'Optimize Resume', isComplete: false},
+				{id: 3, text: 'Take a rest', isComplete: false}
+    		]
+		}
+    });
+</script>
+```
 
 ### 5. 动态组件
 
