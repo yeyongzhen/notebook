@@ -1367,12 +1367,29 @@ Vue.component('submit-button', {
 ```
 
 ### 5. 动态组件
+在动态组件上使用 ``keep-alive``。
+
+在一个多标签的界面中使用 ``is`` 特性来切换不同的组件
+```html
+<component v-bind:is="currentTabComponent"></component>
+```
+当在这些组件之间切换的时候，有时会想保持这些组件的状态，以避免反复重渲染导致的性能问题（每次切换新标签的时候，Vue 都创建了一个新的 ``currentTabComponent`` 实例）。
+
+为了解决这个问题，我们可以用一个 ``<keep-alive>`` 元素将其动态组件包裹起来
+```html
+<!-- 失活的组件将会被缓存！-->
+<keep-alive>
+  <component v-bind:is="currentTabComponent"></component>
+</keep-alive>
+```
+> ``<keep-alive>`` 要求被切换到的组件都有自己的名字，不论是通过组件的 ``name`` 选项还是局部/全局注册。
+
 
 ### 6. 异步组件
+...
 
 ### 7. 处理边界情况
-
-
+[处理边界情况](https://cn.vuejs.org/v2/guide/components-edge-cases.html)
 
 
 🚀 [回到顶部](#目录)
