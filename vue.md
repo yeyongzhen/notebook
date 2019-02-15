@@ -95,7 +95,20 @@ Vue.js 笔记
     - [6. 异步组件](#6-通过事件向父级组件发送消息)
     - [7. 处理边界情况](#7-处理边界情况)
   - [三、过渡 & 动画](#三过渡-&-动画)
-  
+    - [1. 概述](#1-概述)
+    - [2. 单元素/组件的过渡](#2-单元素/组件的过渡)
+        - [2.1 过渡的类名](#21-过渡的类名)
+        - [2.2 CSS过渡](#22-CSS过渡)
+        - [2.3 CSS动画](#23-CSS动画)
+        - [2.4 自定义过渡类名](#24-自定义过渡类名)
+        - [2.5 同时使用过渡和动画](#25-同时使用过渡和动画)
+        - [2.6 显性的过渡持续时间](#26-显性的过渡持续时间)
+        - [2.7 JavaScript 钩子](#27-JavaScript-钩子)
+    - [3. 初始渲染的过渡](#3-初始渲染的过渡)
+    - [4. 多个元素的过渡](#4-多个元素的过渡)
+        - [4.1 过渡模式](#41-过渡模式)
+    - [5. 多个组件的过渡](#5-多个组件的过渡)
+    
   
 <!-- /TOC -->
 
@@ -1563,11 +1576,160 @@ new Vue({
 ```html
 <transition :duration="{ enter: 500, leave: 1000 }">...</transition>
 ```
+#### 2.7 JavaScript 钩子
+可以在属性中声明 JavaScript 钩子
+```html
+<transition
+  v-on:before-enter="beforeEnter"
+  v-on:enter="enter"
+  v-on:after-enter="afterEnter"
+  v-on:enter-cancelled="enterCancelled"
 
+  v-on:before-leave="beforeLeave"
+  v-on:leave="leave"
+  v-on:after-leave="afterLeave"
+  v-on:leave-cancelled="leaveCancelled"
+>
+  <!-- ... -->
+</transition>
+```
+```vue
+// ...
+methods: {
+  // --------
+  // 进入中
+  // --------
 
+  beforeEnter: function (el) {
+    // ...
+  },
+  // 当与 CSS 结合使用时
+  // 回调函数 done 是可选的
+  enter: function (el, done) {
+    // ...
+    done()
+  },
+  afterEnter: function (el) {
+    // ...
+  },
+  enterCancelled: function (el) {
+    // ...
+  },
 
+  // --------
+  // 离开时
+  // --------
 
+  beforeLeave: function (el) {
+    // ...
+  },
+  // 当与 CSS 结合使用时
+  // 回调函数 done 是可选的
+  leave: function (el, done) {
+    // ...
+    done()
+  },
+  afterLeave: function (el) {
+    // ...
+  },
+  // leaveCancelled 只用于 v-show 中
+  leaveCancelled: function (el) {
+    // ...
+  }
+}
+```
 
+### 3. 初始渲染的过渡
+可以通过 ``appear`` 特性设置节点在初始渲染的过渡
+```html
+<transition appear>
+  <!-- ... -->
+</transition>
+```
+
+也可以自定义 CSS 类名：
+```html
+<transition
+  appear
+  appear-class="custom-appear-class"
+  appear-to-class="custom-appear-to-class" (2.1.8+)
+  appear-active-class="custom-appear-active-class"
+>
+  <!-- ... -->
+</transition>
+```
+
+自定义 JavaScript 钩子：
+```html
+<transition
+  appear
+  v-on:before-appear="customBeforeAppearHook"
+  v-on:appear="customAppearHook"
+  v-on:after-appear="customAfterAppearHook"
+  v-on:appear-cancelled="customAppearCancelledHook"
+>
+  <!-- ... -->
+</transition>
+```
+
+### 4. 多个元素的过渡
+对于原生标签可以使用 ``v-if``/ ``v-else``。
+最常见的多标签过渡是一个列表和描述这个列表为空消息的元素：
+```html
+<transition>
+  <table v-if="items.length > 0">
+    <!-- ... -->
+  </table>
+  <p v-else>Sorry, no items found.</p>
+</transition>
+```
+当有相同标签名的元素切换时，需要通过 ``key`` 特性设置唯一的值来标记以让 Vue 区分它们，否则 Vue 为了效率只会替换相同标签内部的内容。即使在技术上没有必要，给在 ``<transition>`` 组件中的多个元素设置 ``key`` 是一个更好的实践。
+
+#### 4.1 过渡模式
+``<transition>`` 的默认行为：进入和离开同时发生。
+
+然而，同时生效的进入和离开的过渡不能满足所有需求，所以 Vue 提供了 **过渡模式**:
+- ``in-out``：新元素先进行过渡，完成后当前元素过渡离开
+- ``out-in``：当前元素先进行过渡，完成之后新元素过渡进入
+```html
+<transition name="fade" mode="out-in">
+  <!-- ... the buttons ... -->
+</transition>
+```
+
+### 5. 多个组件的过渡
+多组件过渡相对简单许多，不需要使用``key``特性，只需要使用**动态组件**：
+```html
+<transition name="component-fade" mode="out-in">
+  <component v-bind:is="view"></component>
+</transition>
+```
+```js
+new Vue({
+  el: '#transition-components-demo',
+  data: {
+    view: 'v-a'
+  },
+  components: {
+    'v-a': {
+      template: '<div>Component A</div>'
+    },
+    'v-b': {
+      template: '<div>Component B</div>'
+    }
+  }
+})
+```
+```css
+.component-fade-enter-active, .component-fade-leave-active {
+  transition: opacity .3s ease;
+}
+.component-fade-enter, .component-fade-leave-to
+/* .component-fade-leave-active for below version 2.1.8 */ {
+  opacity: 0;
+}
+```
+### 6. 列表过渡
 
 
 
