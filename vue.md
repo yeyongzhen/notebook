@@ -1730,7 +1730,45 @@ new Vue({
 }
 ```
 ### 6. 列表过渡
+使用``<transition-group>``组件，它有以下特点：
+- 它会以一个真实的元素呈现：默认为一个``<span>``，也可以通过``tag``特性更换为其他元素。
+- **过渡模式**不可用，因为我们不再相互切换特有的元素
+- 内部元素 **总是需要** 提供唯一的 ``key`` 属性值
 
+### 7. 可复用的过渡
+过渡可以通过Vue组件系统实现复用。要创建一个可复用过渡组件，你需要做的就是将 ``<transition>`` 或者 ``<transition-group>`` 作为根组件，然后将任何子组件放置在其中就可以了。
+
+例子：
+```html
+<div id="app">
+  <fade :show="show">
+    <p>可复用的过渡</p>
+  </fade>
+  <button @click="handleClick">Toogle</button>
+</div>
+```
+```js
+Vue.component('fade', {
+  props: ['show'],
+  template: `
+  <transition @before-enter="handleBeforeEnter"
+  @enter="handleEnter">
+    <slot v-if="show"></slot>
+  </transition>
+  `,
+  methods: {
+    handleBeforeEnter: function (el) {
+      el.style.color = 'red'
+	},
+	handleEnter: function (el, done) {
+	  setTimeout(() => {
+		el.style.color = 'green'
+		done()
+	  }, 2000)
+	}
+  }
+})
+```
 
 
 
