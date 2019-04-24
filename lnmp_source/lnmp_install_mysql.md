@@ -1,3 +1,6 @@
+LNMP环境搭建-安装MySQL
+====================
+
 ## 一、安装准备
 - MySQL官网 https://www.mysql.com/
 - MySQL下载页 https://dev.mysql.com/downloads/mysql/
